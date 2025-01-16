@@ -43,17 +43,29 @@
             width: 80%;
             max-width: 600px;
         }
+
+        #errorDisplay {
+            color: red;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            z-index: 1000;
+        }
     </style>
 </head>
 
 <body>
+    <div id="errorDisplay"></div>
+
     <video id="backgroundVideo" autoplay loop muted>
-        <source src="https://link.storjshare.io/s/juhlnv5we54mouvqhay5g5t5vmqa/music/milch.MP4" type="video/mp4">
+        <source src="https://drive.google.com/uc?id=1dEF6MvNR1BWOBFpC0wO9m1zSiq9Z-wOM" type="video/mp4">
     </video>
 
     <div class="audio-player">
         <audio id="audioPlayer" controls>
-            <source src="https://link.storjshare.io/s/jxsqgalxvgkdzvnjtngfm3ws3hcq/music/milch.mp3" type="audio/mpeg">
+            <source src="https://drive.google.com/uc?id=1Nfurk2l6ZL4OZmm-zt9ua4rn42mzeerx" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
     </div>
@@ -62,13 +74,31 @@
         document.addEventListener('DOMContentLoaded', () => {
             const video = document.getElementById('backgroundVideo');
             const audio = document.getElementById('audioPlayer');
+            const errorDisplay = document.getElementById('errorDisplay');
+
+            // Error logging for video
+            video.addEventListener('error', (e) => {
+                console.error('Video Error:', e);
+                errorDisplay.innerHTML += `Video Error: ${ e.message }<br>`;
+            });
+
+            // Error logging for audio
+            audio.addEventListener('error', (e) => {
+                console.error('Audio Error:', e);
+                errorDisplay.innerHTML += `Audio Error: ${ e.message }<br>`;
+            });
 
             // Ensure video plays when page loads
-            video.play();
+            video.play().catch(e => {
+                console.error('Video Play Error:', e);
+                errorDisplay.innerHTML += `Video Play Error: ${ e.message }<br>`;
+            });
 
-            // Optional: Sync audio play/pause with video
+            // Sync audio play/pause with video
             audio.addEventListener('play', () => {
-                video.play();
+                video.play().catch(e => {
+                    console.error('Video Play on Audio Start Error:', e);
+                });
             });
 
             audio.addEventListener('pause', () => {
