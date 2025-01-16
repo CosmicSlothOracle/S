@@ -44,20 +44,25 @@
             max-width: 600px;
         }
 
-        #errorDisplay {
-            color: red;
+        #debugInfo {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
             padding: 10px;
+            font-size: 12px;
             z-index: 1000;
+            white-space: pre-wrap;
+            overflow: auto;
+            max-height: 200px;
         }
     </style>
 </head>
 
 <body>
-    <div id="errorDisplay"></div>
+    <div id="debugInfo"></div>
 
     <video id="backgroundVideo" autoplay loop muted>
         <source src="https://drive.google.com/uc?id=1dEF6MvNR1BWOBFpC0wO9m1zSiq9Z-wOM" type="video/mp4">
@@ -71,39 +76,42 @@
     </div>
 
     <script>
+        function log(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.textContent += message + '\n';
+            console.log(message);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const video = document.getElementById('backgroundVideo');
             const audio = document.getElementById('audioPlayer');
-            const errorDisplay = document.getElementById('errorDisplay');
 
-            // Error logging for video
+            // Log media sources
+            log(`Video Source: ${ video.src }`);
+            log(`Audio Source: ${ audio.src }`);
+
+            // Comprehensive event listeners
+            ['loadstart', 'progress', 'suspend', 'abort', 'error', 'emptied', 'stalled', 'loadedmetadata', 'loadeddata', 'canplay', 'canplaythrough'].forEach(event => {
+                video.addEventListener(event, () => log(`Video Event: ${ event }`));
+                audio.addEventListener(event, () => log(`Audio Event: ${ event }`));
+            });
+
+            // Detailed error handling
             video.addEventListener('error', (e) => {
-                console.error('Video Error:', e);
-                errorDisplay.innerHTML += `Video Error: ${ e.message }<br>`;
+                log(`Video Error: ${ e.type }`);
+                log(`Video Ready State: ${ video.readyState }`);
+                log(`Video Network State: ${ video.networkState }`);
             });
 
-            // Error logging for audio
             audio.addEventListener('error', (e) => {
-                console.error('Audio Error:', e);
-                errorDisplay.innerHTML += `Audio Error: ${ e.message }<br>`;
+                log(`Audio Error: ${ e.type }`);
+                log(`Audio Ready State: ${ audio.readyState }`);
+                log(`Audio Network State: ${ audio.networkState }`);
             });
 
-            // Ensure video plays when page loads
-            video.play().catch(e => {
-                console.error('Video Play Error:', e);
-                errorDisplay.innerHTML += `Video Play Error: ${ e.message }<br>`;
-            });
-
-            // Sync audio play/pause with video
-            audio.addEventListener('play', () => {
-                video.play().catch(e => {
-                    console.error('Video Play on Audio Start Error:', e);
-                });
-            });
-
-            audio.addEventListener('pause', () => {
-                video.pause();
-            });
+            // Attempt to play
+            video.play().catch(e => log(`Video Play Error: ${ e.message }`));
+            audio.play().catch(e => log(`Audio Play Error: ${ e.message }`));
         });
     </script>
 </body>
